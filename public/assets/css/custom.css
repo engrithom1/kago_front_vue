@@ -1,0 +1,66 @@
+
+
+@font-face {
+    font-family: "Nunito";
+    src: url("../fonts/Nunito/Nunito-Light.eot");
+    src: url("../fonts/Nunito/Nunito-Light.eot?#iefix") format("embedded-opentype"), url("../fonts/Nunito/Nunito-Light.woff2") format("woff2"), url("../fonts/Nunito/Nunito-Light.woff") format("woff"), url("../fonts/Nunito/Nunito-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Nunito";
+    src: url("../fonts/Nunito/Nunito-Bold.eot");
+    src: url("../fonts/Nunito/Nunito-Bold.eot?#iefix") format("embedded-opentype"), url("../fonts/Nunito/Nunito-Bold.woff2") format("woff2"), url("../fonts/Nunito/Nunito-Bold.woff") format("woff"), url("../fonts/Nunito/Nunito-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Nunito";
+    src: url("../fonts/Nunito/Nunito-SemiBold.eot");
+    src: url("../fonts/Nunito/Nunito-SemiBold.eot?#iefix") format("embedded-opentype"), url("../fonts/Nunito/Nunito-SemiBold.woff2") format("woff2"), url("../fonts/Nunito/Nunito-SemiBold.woff") format("woff"), url("../fonts/Nunito/Nunito-SemiBold.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Nunito";
+    src: url("../fonts/Nunito/Nunito-Regular.eot");
+    src: url("../fonts/Nunito/Nunito-Regular.eot?#iefix") format("embedded-opentype"), url("../fonts/Nunito/Nunito-Regular.woff2") format("woff2"), url("../fonts/Nunito/Nunito-Regular.woff") format("woff"), url("../fonts/Nunito/Nunito-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  body {
+    font-size: 1rem;
+    font-family: "Nunito", sans-serif;
+    font-weight: initial;
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+.text-dark-green{
+    color: #23382f;
+}
+
+.form-control{
+  margin-bottom: 15px;
+}
+
+.spacer{
+  margin-bottom: 40px;
+}
+
+@media only screen and (max-width: 767px)
+{
+  .spacer{
+    margin-bottom: 30px;
+  }
+}
+
+.modal{
+  margin: 0px !important;
+}
+
+.btn-create{
+  --bs-btn-padding-x: 0.45rem;
+  --bs-btn-padding-y: 0.65rem;
+}
