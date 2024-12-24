@@ -8,7 +8,47 @@
 </style>
 
 <template>
-  <div>
+  <div >
+
+    <div v-if="!this.chat_show_btn" class="m-3">
+        <div class="row">
+          <div class="col-sm-12 col-md-4">
+            <textarea placeholder="Message goes here...." class="form-control" v-model="this.message" id="message" cols="30" rows="3"></textarea>
+            
+          </div>
+          <div class="col-sm-12 col-md-8">
+            <textarea placeholder="0768448525,0614928525......" class="form-control" v-model="this.phone_list" id="message" cols="30" rows="3"></textarea>
+            
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4 col-sm-4 col-md-4">
+            <div class="d-flex justify-content-end">
+              <button @click="this.sendMessages" v-if="this.send_btn" class="btn btn-success">Send message</button>
+              <button
+                v-if="!this.send_btn"
+                class="btn btn-success"
+                type="button"
+              >
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Please Wait...
+              </button>
+            </div>
+          </div>
+          <div class="col-8 col-sm-8 col-md-8">
+            <div class="d-flex justify-content-start">
+              <button @click="this.chatShow" class="btn btn-danger">Close Chats</button>
+              <span class="m-1"></span>
+              <button v-if="this.phone_list" @click="this.clearChat" class="btn btn-dark">Clear List</button>
+            </div>
+          </div>
+        </div>  
+    </div>
+
     <div v-if="this.parcels_fetch" class="mt-5">
       <div class="text-center">
         <div class="spinner-grow text-success" role="status"></div>
@@ -52,8 +92,11 @@
             </option>
           </select>
 
-          <button id="sms_btn" class="btn btn-dark text-white simple-btn">
+          <button @click="this.chatShow" v-if="this.chat_show_btn" id="sms_btn" class="btn btn-dark text-white simple-btn">
             SendSMS
+          </button>
+          <button @click="this.chatShow" v-if="!this.chat_show_btn" id="sms_btn" class="btn btn-danger text-white simple-btn">
+            Close Chats
           </button>
         </div>
         <div class="card-body">
@@ -102,7 +145,12 @@
                           >
                         </td>
                         <td>{{ parcel.receiver_name }}</td>
-                        <td>{{ parcel.receiver_phone }}</td>
+                        <td class="text-success">
+                          <a href="#" @click="this.addPhoneList(parcel.receiver_phone)">
+                            <i class="ri-message-2-line"></i>
+                            {{ parcel.receiver_phone }}
+                          </a>
+                        </td>
                         <td>
                           <span
                             class="badge border border-danger text-danger"
@@ -128,7 +176,10 @@
                           <!--a class="btn btn-secondary btn-sm" href="#"
                             ><i class="ri-mark-pen-line"></i></a
                         -->
-                          <a class="btn btn-danger btn-sm" href="#"
+                          <a class="btn btn-danger btn-sm" 
+                          data-bs-toggle="modal"
+                            href="#confitmModal"
+                            @click="this.deleteInfo(parcel.id, parcel.name, parcel.barcode_id)"
                             ><i class="ri-mark-pen-line"></i
                           ></a>
                         </td>
@@ -412,8 +463,17 @@
             </h1>
             <h4 class="fw-bold">Confirm Delete</h4>
             <p>
-              Are you sure, what to delete Branch().
+              Are you sure, what to delete parcel.<br/>
+              <b>{{ this.delete_data.name }}</b>
             </p>
+            <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              v-model="this.delete_data.description"
+              placeholder="give reason"
+            />
+          </div>
             <div class="d-flex justify-content-center">
               <button
                 :disabled="!this.delete_btn"
@@ -426,7 +486,7 @@
               <span class="m-2"></span>
               <button
                 v-if="this.delete_btn"
-                @click="deleteBranch"
+                @click="deleteParcel"
                 class="btn btn-success"
               >
                 Delete
@@ -544,10 +604,14 @@ import moment from "moment";
 export default {
   data() {
     return {
+      phone_list:"",
+      message:"",
       update_btn: true,
       receive_btn: true,
       filter_btn: true,
       delete_btn: true,
+      send_btn: true,
+      chat_show_btn:true,
       parcels_fetch: true,
       errors: "",
       tags: [],
@@ -561,12 +625,63 @@ export default {
         id:"",
         barcode_id:"" 
       },
+      delete_data: {
+        id:"",
+        name:"",
+        barcode_id:"",
+        description:"" 
+      },
       user: this.$attrs.user,
     };
   },
   methods: {
     dataFormat(date) {
       return moment(date).format("DD - MM - YYYY");
+    },
+    chatShow(){
+        this.chat_show_btn = !this.chat_show_btn
+    },
+    clearChat(){
+      if (confirm('Are you sure want to clear phone list?')) {
+        this.phone_list = ""
+      }
+    },
+    checkInArray(arry_phone, phone) {
+        var res = false
+        for (let index = 0; index < arry_phone.length; index++) {
+            const element = arry_phone[index];
+
+            if (element == phone) {
+                res = true
+            }
+
+        }
+        return res
+    },
+    addPhoneList(phone){
+      this.chat_show_btn = false
+
+        var str_phone = this.phone_list;
+
+        if (str_phone == "" || str_phone == undefined || str_phone == null) {
+            this.phone_list = phone+","
+
+        } else {
+            var arry_phone = str_phone.split(',')
+            //alert(arry_phone.length)
+            if (this.checkInArray(arry_phone, phone)) {
+                if (confirm(phone + ' aleady exist, do you want to remove it?')) {
+                    const index = arry_phone.indexOf(phone);
+                    if (index > -1) {
+                        arry_phone.splice(index, 1);
+                        this.phone_list = arry_phone.toString();
+                    }
+
+                }
+            } else {
+              this.phone_list = str_phone + phone + ",";
+            }
+        }
     },
     async allTags() {
       var response = await axios.get(
@@ -595,7 +710,7 @@ export default {
       var response = await axios
         .get(this.$store.state.api_url + "/parcel/outgoing")
         .catch((errors) => {
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
@@ -622,7 +737,7 @@ export default {
         .post(this.$store.state.api_url + "/parcel/update", this.parcel_data)
         .catch((errors) => {
           this.update_btn = true;
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
@@ -641,6 +756,37 @@ export default {
         this.update_btn = true;
       }
     },
+    async sendMessages() {
+      this.errors = "";
+      this.send_btn = false;
+
+      var msg = this.message
+      var phone_list = this.phone_list
+
+      var response = await axios
+        .post(this.$store.state.api_url + "/sms/multiple", {message:msg, phone_list})
+        .catch((errors) => {
+          this.send_btn = true;
+          var message = "Network or Request Errors";
+          this.$toast.error(message, { duration: 7000, dismissible: true });
+        });
+
+      if (response.data.success) {
+        this.send_btn = true;
+        var message = response.data.message;
+        this.$toast.success(message, { duration: 7000, dismissible: true });
+        //window.location.reload();
+      } else {
+        if(response.data.code == 444){
+            localStorage.removeItem("user_token")
+            localStorage.removeItem("user")
+            window.location.reload(); 
+        }
+        var _errors = response.data.message;
+          this.$toast.error(_errors, { duration: 7000, dismissible: true });
+        this.send_btn = true;
+      }
+    },
     async receiveParcel() {
       this.errors = "";
       this.receive_btn = false;
@@ -649,7 +795,7 @@ export default {
         .post(this.$store.state.api_url + "/parcel/receive", this.receive_data)
         .catch((errors) => {
           this.receive_btn = true;
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
@@ -680,6 +826,43 @@ export default {
         this.receive_data.barcode_id = parcel.barcode_id
 
         console.log(parcel)
+    },
+    deleteInfo(id,name,barcode_id){
+      this.delete_data.id = id
+      this.delete_data.name = name
+      this.delete_data.barcode_id = barcode_id
+
+      console.log(name)
+    },
+    async deleteParcel() {
+      this.errors = "";
+      this.delete_btn = false;
+      var id = this.delete_data.id;
+      var barcode_id = this.delete_data.barcode_id;
+      var description = this.delete_data.description;
+
+      var response = await axios
+        .post(this.$store.state.api_url + "/parcel/delete", { id, barcode_id, description })
+        .catch((errors) => {
+          this.delete_btn = true;
+          var message = "Network or Request Errors";
+          this.$toast.error(message, { duration: 7000, dismissible: true });
+        });
+
+      if (response.data.success) {
+        var message = response.data.message;
+        this.$toast.success(message, { duration: 7000, dismissible: true });
+        window.location.reload();
+      } else {
+        if (response.data.code == 444) {
+          localStorage.removeItem("user_token");
+          localStorage.removeItem("user");
+          window.location.reload();
+        }
+        var errors = response.data.message;
+        this.$toast.error(errors, { duration: 7000, dismissible: true });
+        this.delete_btn = true;
+      }
     },
     filterParcel() {
         var bid = this.branch_id

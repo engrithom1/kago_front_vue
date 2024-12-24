@@ -665,7 +665,7 @@ export default {
         .post(this.$store.state.api_url + "/branch/create", this.form_data)
         .catch((errors) => {
           this.create_btn = true;
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
@@ -691,7 +691,7 @@ export default {
         .post(this.$store.state.api_url + "/branch/update", this.update_data)
         .catch((errors) => {
           this.update_btn = true;
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
@@ -718,7 +718,7 @@ export default {
         .post(this.$store.state.api_url + "/branch/delete", { id })
         .catch((errors) => {
           this.delete_btn = true;
-          var message = "Network or Server Errors";
+          var message = "Network or Request Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
