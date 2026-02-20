@@ -9,15 +9,15 @@
 
 <template>
   <div>
-    <div v-if="this.parcels_fetch" class="mt-5">
+    <div v-if="this.revenue_fetch" class="mt-5">
       <div class="text-center">
         <div class="spinner-grow text-success" role="status"></div>
         <div class="spinner-grow text-danger" role="status"></div>
         <div class="spinner-grow text-warning" role="status"></div>
       </div>
     </div>
-    <div v-if="!this.parcels_fetch">
-      <div v-if="!this.parcels" class="text-center m-5">
+    <div v-if="!this.revenue_fetch">
+      <div v-if="!this.revenues" class="text-center m-5">
         <img
           src="/assets/images/empty_box.png"
           width="200px"
@@ -25,22 +25,29 @@
           alt=""
           srcset=""
         />
-        <h5 class="text-danger mt-3">No Parcel Found !</h5>
+        <h5 class="text-danger mt-3">No Report Found !</h5>
       </div>
-      <div v-if="this.parcels" class="card mb-3">
+      <div v-if="this.revenues" class="card mb-3">
         <div class="card-header d-flex justify-content-between table-responsive">
-            <h6></h6>
+          <div>
+          <div v-if="this.revenue_filter" class="text-center">
+            <div class="spinner-grow text-success" role="status"></div>
+            <div class="spinner-grow text-danger" role="status"></div>
+            <div class="spinner-grow text-warning" role="status"></div>
+          </div>
+        </div>
             <div class="d-flex">
-                <input type="date" class="" name="" id="">
-            <input type="date" class="" name="" id="">
-            <button id="sms_btn" class="btn btn-success text-white simple-btn">Filter</button>
-            <button id="sms_btn" class="btn btn-dark text-white simple-btn">Excel</button>
+              <input type="date" class="form-control simple-select" v-model="this.sdate" id="sdate">
+              <input type="date" class="form-control simple-select" v-model="this.edate" id="edate">
+              <button id="filter_btn"  @click="this.filterRevenue"
+              :disabled="this.revenue_filter" class="btn btn-success text-white simple-btn">Filter</button>
+              <!--button :disabled="this.revenue_filter" id="export_btn" class="btn btn-dark text-white simple-btn">Export</button-->
             </div>
                 
         </div>
         
         <div class="card-body">
-            <h5 class="text-center mt-3">All Branches Revenue 2024-07-01 To 2024-08-02</h5>
+            <h5 class="text-center mt-3">All Branches Revenue (To Day)</h5>
           <!-- Table start -->
           <div class="table-responsive">
             <div
@@ -66,18 +73,18 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr class="" v-for="parcel, index in parcels" :key="parcel.id">
+                      <tr class="" v-for="revenue, index in revenues" :key="revenue.id">
                         <td class="sorting_1">{{ index+1 }}</td>
-                        <td>Mwananyamala Br</td>
+                        <td>{{revenue.name}}</td>
                         <td>
-                         {{parcel.price}}
+                         {{revenue.packages}}
                         </td>
                         <td>
                           <span class="badge border border-success text-success"
-                            >45,000</span
+                            >{{this.priceFormat(revenue.average)}}</span
                           >
                         </td>
-                       <td>1,000,000</td>
+                       <td>{{this.priceFormat(revenue.revenue)}}</td>
                        
                       </tr>
                     </tbody>
@@ -91,9 +98,9 @@
           <!--summary-->
           <div class="mt-5">
             <h3 class=""><u>Summary</u></h3>
-            <h5>Total parcel : 30</h5>
-            <h5>Average (price/parcel) : Tsh 40,000/=</h5>
-            <h5>Total Income : Tsh 2,040,000/=</h5>
+            <h5>Total parcel : {{ this.priceFormat(this.summary.parcels) }}</h5>
+            <h5>Average (price/parcel) : {{ priceFormat(this.summary.average) }}/=</h5>
+            <h5>Total Income : Tsh {{ priceFormat(this.summary.revenue) }}/=</h5>
           </div>
         </div>
       </div>
@@ -109,12 +116,19 @@ import moment from "moment";
 export default {
   data() {
     return {
+      sdate:"",
+      edate:"",
+      revenue_filter: false,
       filter_btn: true,
-      parcels_fetch: true,
+      revenue_fetch: true,
       errors: "",
-      tags: [],
-      branches: [],
-      parcels: [],
+      heading:"To Day's All Branches Revenue",
+      revenues: [],
+      summary:{
+        revenue:0,
+        parcels:0,
+        average:0
+      },
       user: this.$attrs.user,
     };
   },
@@ -122,51 +136,83 @@ export default {
     dataFormat(date){
       return moment(date).format("DD - MM - YYYY");
     },
-    async allTags() {
-      var response = await axios.get(
-        this.$store.state.api_url + "/tag/all-tags"
-      );
-      if (response.data.success) {
-        this.tags = response.data.tags;
-      } else {
-        var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
-      }
+    priceFormat(price) {
+      return price.toLocaleString()
     },
+    validateDate(start, end) {
 
-    async otherBranches() {
-      var response = await axios.get(
-        this.$store.state.api_url + "/branch/other-branches"
-      );
-      if (response.data.success) {
-        this.branches = response.data.branches;
-      } else {
-        var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
-      }
-    },
-    async outgoingParcel() {
+if (start == null || start == '' || end == null || end == '') {
+    alert('Start and End Date are Required')
+    return false;
+} else {
+    if (start > end) {
+        alert('Start date must not be greater than End Date')
+        return false;
+    } else {
+        return true;
+    }
+}
+},
+    
+    async revenueReport() {
       var response = await axios
-        .get(this.$store.state.api_url + "/parcel/outgoing")
+        .get(this.$store.state.api_url + "/report/revenue")
         .catch((errors) => {
           var message = "Network or Server Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
         });
 
       if (response.data.success) {
-        this.parcels = response.data.parcels;
-        this.parcels_fetch = false;
+
+        this.revenues = response.data.revenues;
+        this.summary = response.data.summary;
+        this.revenue_fetch = false;
       } else {
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.error(message, { duration: 5000, dismissible: true });
+      }
+    },
+    async filterRevenue() {
+
+      var sdate = this.sdate;
+      var edate = this.edate;
+
+      if (this.validateDate(sdate, edate)) {
+      
+        this.errors = "";
+        this.revenue_filter = true;
+
+        var response = await axios
+          .post(this.$store.state.api_url + "/report/revenue-filter", {
+            sdate, edate
+          })
+          .catch((errors) => {
+            this.revenue_filter = false;
+            var message = "Network or Server Errors";
+            this.$toast.error(message, { duration: 7000, dismissible: true });
+          });
+
+        if (response.data.success) {
+          this.revenue_filter = false;
+          this.revenues = response.data.revenues;
+          this.summary = response.data.summary;
+          this.heading = "All Branches Revenue "+this.sdate+" To "+this.edate
+        } else {
+          if (response.data.code == 444) {
+            localStorage.removeItem("user_token");
+            localStorage.removeItem("user");
+            window.location.reload();
+          }
+          var msg = response.data.message;
+          this.$toast.error(msg, { duration: 7000, dismissible: true });
+          this.revenue_filter = false;
+        }
       }
     },
   },
   created() {
     this.$store.state.page_name = "Revenue Summary";
-    this.allTags();
-    this.otherBranches();
-    this.outgoingParcel();
+    this.revenueReport();
   },
 };
 </script>

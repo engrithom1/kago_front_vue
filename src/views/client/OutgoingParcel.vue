@@ -5,48 +5,93 @@
   outline: 1px solid #ced4da !important;
   height: 40px !important;
 }
+.pdf-item {
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 15px 10px;
+  margin-bottom: 20px;
+}
+
+.pdf-table {
+  width: 100%;
+}
+
+.td-1 {
+  width: 40%;
+  padding-left: 8px;
+}
+
+.td-2 {
+  width: 30%;
+  padding-left: 8px;
+}
+
+.h5-pdf {
+  margin-bottom: 10px;
+}
 </style>
 
 <template>
-  <div >
-
+  <div>
     <div v-if="!this.chat_show_btn" class="m-3">
-        <div class="row">
-          <div class="col-sm-12 col-md-4">
-            <textarea placeholder="Message goes here...." class="form-control" v-model="this.message" id="message" cols="30" rows="3"></textarea>
-            
-          </div>
-          <div class="col-sm-12 col-md-8">
-            <textarea placeholder="0768448525,0614928525......" class="form-control" v-model="this.phone_list" id="message" cols="30" rows="3"></textarea>
-            
+      <div class="row">
+        <div class="col-sm-12 col-md-4">
+          <textarea
+            placeholder="Message goes here...."
+            class="form-control"
+            v-model="this.message"
+            id="message"
+            cols="30"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="col-sm-12 col-md-8">
+          <textarea
+            placeholder="0768448525,0614928525......"
+            class="form-control"
+            v-model="this.phone_list"
+            id="message"
+            cols="30"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 col-sm-4 col-md-4">
+          <div class="d-flex justify-content-end">
+            <button
+              @click="this.sendMessages"
+              v-if="this.send_btn"
+              class="btn btn-success"
+            >
+              Send message
+            </button>
+            <button v-if="!this.send_btn" class="btn btn-success" type="button">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Please Wait...
+            </button>
           </div>
         </div>
-        <div class="row">
-          <div class="col-4 col-sm-4 col-md-4">
-            <div class="d-flex justify-content-end">
-              <button @click="this.sendMessages" v-if="this.send_btn" class="btn btn-success">Send message</button>
-              <button
-                v-if="!this.send_btn"
-                class="btn btn-success"
-                type="button"
-              >
-                <span
-                  class="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Please Wait...
-              </button>
-            </div>
+        <div class="col-8 col-sm-8 col-md-8">
+          <div class="d-flex justify-content-start">
+            <button @click="this.chatShow" class="btn btn-danger">
+              Close Chats
+            </button>
+            <span class="m-1"></span>
+            <button
+              v-if="this.phone_list"
+              @click="this.clearChat"
+              class="btn btn-dark"
+            >
+              Clear List
+            </button>
           </div>
-          <div class="col-8 col-sm-8 col-md-8">
-            <div class="d-flex justify-content-start">
-              <button @click="this.chatShow" class="btn btn-danger">Close Chats</button>
-              <span class="m-1"></span>
-              <button v-if="this.phone_list" @click="this.clearChat" class="btn btn-dark">Clear List</button>
-            </div>
-          </div>
-        </div>  
+        </div>
+      </div>
     </div>
 
     <div v-if="this.parcels_fetch" class="mt-5">
@@ -91,13 +136,36 @@
               {{ branch.name }}
             </option>
           </select>
-
-          <button @click="this.chatShow" v-if="this.chat_show_btn" id="sms_btn" class="btn btn-dark text-white simple-btn">
-            SendSMS
-          </button>
-          <button @click="this.chatShow" v-if="!this.chat_show_btn" id="sms_btn" class="btn btn-danger text-white simple-btn">
-            Close Chats
-          </button>
+          <div class="d-flex">
+            <input type="date" class="form-control simple-select" v-model="this.sdate" id="sdate">
+              <input type="date" class="form-control simple-select" v-model="this.edate" id="edate">
+              <button id="filter_btn"  @click="this.filterMessageDate"
+              :disabled="this.parcels_fetch" class="btn btn-success text-white simple-btn">Filter</button>
+            <button
+              @click="this.chatShow"
+              v-if="this.chat_show_btn"
+              id="sms_btn"
+              class="btn btn-info text-white simple-btn"
+            >
+              SMS
+            </button>
+            <button
+              @click="this.chatShow"
+              v-if="!this.chat_show_btn"
+              id="sms_btn"
+              class="btn btn-danger text-white simple-btn"
+            >
+              Close Chats
+            </button>
+            <!--button
+              id="export_btn"
+              data-bs-toggle="modal"
+              href="#exportPdf"
+              class="btn btn-dark text-white simple-btn"
+            >
+              Pdf
+            </button-->
+          </div>
         </div>
         <div class="card-body">
           <!-- Table start -->
@@ -119,7 +187,7 @@
                         <th>No</th>
                         <th>Parcel Name</th>
                         <th>price</th>
-                        <th>Parcel Type</th>
+                        <th>Parcel Label</th>
                         <th>Receiver Name</th>
                         <th>Receiver Phone</th>
                         <th>Destination</th>
@@ -134,19 +202,22 @@
                         :key="parcel.id"
                       >
                         <td class="sorting_1">{{ index + 1 }}</td>
-                        <td>{{ parcel.name }}</td>
+                        <td>{{ parcel.tag_name }}</td>
                         <td>
-                          {{ parcel.price }}
+                          {{ this.priceFormat(parcel.price) }}
                         </td>
                         <td>
                           <span
                             class="badge border border-success text-success"
-                            >{{ parcel.tag_name }}</span
+                            >{{ parcel.name }}</span
                           >
                         </td>
                         <td>{{ parcel.receiver_name }}</td>
                         <td class="text-success">
-                          <a href="#" @click="this.addPhoneList(parcel.receiver_phone)">
+                          <a
+                            href="#"
+                            @click="this.addPhoneList(parcel.receiver_phone)"
+                          >
                             <i class="ri-message-2-line"></i>
                             {{ parcel.receiver_phone }}
                           </a>
@@ -167,7 +238,8 @@
                           >
                             <i class="ri-mark-pen-line"></i> </a
                           >|
-                          <a class="btn btn-info btn-sm"
+                          <a
+                            class="btn btn-info btn-sm"
                             data-bs-toggle="modal"
                             href="#receiveParcel"
                             @click="this.receiveInfo(parcel)"
@@ -176,10 +248,17 @@
                           <!--a class="btn btn-secondary btn-sm" href="#"
                             ><i class="ri-mark-pen-line"></i></a
                         -->
-                          <a class="btn btn-danger btn-sm" 
-                          data-bs-toggle="modal"
+                          <a
+                            class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
                             href="#confitmModal"
-                            @click="this.deleteInfo(parcel.id, parcel.name, parcel.barcode_id)"
+                            @click="
+                              this.deleteInfo(
+                                parcel.id,
+                                parcel.name,
+                                parcel.barcode_id
+                              )
+                            "
                             ><i class="ri-mark-pen-line"></i
                           ></a>
                         </td>
@@ -195,6 +274,7 @@
       </div>
     </div>
 
+    <!--edit parcel-->
     <div
       class="modal fade"
       id="exampleModalFullscreen"
@@ -217,208 +297,229 @@
           </div>
           <div class="modal-body">
             <div class="m-3">
-    <h5>Parcel Actors</h5>
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Sender name *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.sender_name"
-              placeholder="Enter fulname"
-            />
-          </div>
+              <h5>Parcel Actors</h5>
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Sender name *</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.sender_name"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Receiver name *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.receiver_name"
-              placeholder="Enter fulname"
-            />
-          </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Receiver name *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.receiver_name"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Transporter name</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.transporter_name"
-              placeholder="Enter fulname"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Sender phone *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.sender_phone"
-              placeholder="0xxxxxxxxx"
-            />
-          </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Transporter name</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.transporter_name"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Sender phone *</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.sender_phone"
+                        placeholder="0xxxxxxxxx"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Receiver phone *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.receiver_phone"
-              placeholder="0xxxxxxxxx"
-            />
-          </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Receiver phone *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.receiver_phone"
+                        placeholder="0xxxxxxxxx"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Transporter phone</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.transporter_phone"
-              placeholder="0xxxxxxxx"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Transporter phone</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.transporter_phone"
+                        placeholder="0xxxxxxxx"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-    <div class="spacer"></div>
-    <h5>Parcel Details</h5>
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Package name *</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.name"
-              placeholder="Enter fulname"
-            />
-          </div>
+              <div class="spacer"></div>
+              <h5>Parcel Details</h5>
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Package name *</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.name"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Package Size *</label>
-            <select
-              class="form-select"
-              v-model="this.parcel_data.package_size"
-              aria-label="Default select example"
-            >
-              <option selected disabled value="">Parcel size</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-            </select>
-          </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Package Size *</label>
+                      <select
+                        class="form-select"
+                        v-model="this.parcel_data.package_size"
+                        aria-label="Default select example"
+                      >
+                        <option selected disabled value="">Parcel size</option>
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Package Type *</label>
-            <select
-              class="form-select"
-               v-model="this.parcel_data.package_tag"
-              aria-label="Default select example"
-            >
-             <option selected disabled value="">Parcel type (tag)</option>
-             <option :disabled="!tag.status" class="text-capitalize"
-                      v-for="tag in tags"
-                      :key="tag.id"
-                      :value="tag.id"
-                    >
-                      {{ tag.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Parcel value *</label>
-            <input
-              type="number"
-              class="form-control"
-               v-model="this.parcel_data.package_value"
-              placeholder="Enter fulname"
-            />
-          </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Package Type *</label>
+                      <select
+                        class="form-select"
+                        v-model="this.parcel_data.package_tag"
+                        aria-label="Default select example"
+                      >
+                        <option selected disabled value="">
+                          Parcel type (tag)
+                        </option>
+                        <option
+                          :disabled="!tag.status"
+                          class="text-capitalize"
+                          v-for="tag in tags"
+                          :key="tag.id"
+                          :value="tag.id"
+                        >
+                          {{ tag.name }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc">Parcel value *</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model="this.parcel_data.package_value"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Parcel Weight (in Kg)</label>
-            <input
-              type="number"
-              class="form-control"
-              v-model="this.parcel_data.package_weight"
-              placeholder="Enter fulname"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Parcel Weight (in Kg)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model="this.parcel_data.package_weight"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-    <div class="spacer"></div>
-    <h5>Shipping Details</h5>
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc"
-              >Destination (Location Branch) *</label
-            >
-            <select
-              class="form-select"
-              v-model="this.parcel_data.branch_to"
-              aria-label="Default select example"
-            >
-            <option selected disabled value="">Select destination (branch)</option>
-            <option :disabled="!branch.status" class="text-capitalize"
-                      v-for="branch in branches"
-                      :key="branch.id"
-                      :value="branch.id"
-                    >
-                      {{ branch.name }}
-            </option>
-            </select>
-          </div>
+              <div class="spacer"></div>
+              <h5>Shipping Details</h5>
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Destination (Location Branch) *</label
+                      >
+                      <select
+                        class="form-select"
+                        v-model="this.parcel_data.branch_to"
+                        aria-label="Default select example"
+                      >
+                        <option selected disabled value="">
+                          Select destination (branch)
+                        </option>
+                        <option
+                          :disabled="!branch.status"
+                          class="text-capitalize"
+                          v-for="branch in branches"
+                          :key="branch.id"
+                          :value="branch.id"
+                        >
+                          {{ branch.name }}
+                        </option>
+                      </select>
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Transportation Price *</label>
-            <input
-              type="number"
-              class="form-control"
-             v-model="this.parcel_data.price"
-              placeholder="Enter fulname"
-            />
-          </div>
-        </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Transportation Price *</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model="this.parcel_data.price"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
+                  </div>
 
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label" for="abc"
-              >Specify location (option)</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.parcel_data.specific_location"
-              placeholder="Enter fulname"
-            />
-          </div>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Specify location (option)</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.specific_location"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
 
-          <div class="col-md-3">
-            <label class="form-label" for="abc">Description (option)</label>
-            <input
-              type="text"
-              class="form-control"
-             v-model="this.parcel_data.description"
-              placeholder="Enter fulname"
-            />
-          </div>
-        </div>
-        
-      </div>
-    </div>
-  </div>
+                    <div class="col-md-3">
+                      <label class="form-label" for="abc"
+                        >Description (option)</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="this.parcel_data.description"
+                        placeholder="Enter fulname"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button
@@ -428,12 +529,21 @@
             >
               Close
             </button>
-            <button v-if="this.update_btn" @click="updateParcel" type="button" class="btn btn-success">
-             <i class="ri-add-circle-line"></i>
+            <button
+              v-if="this.update_btn"
+              @click="updateParcel"
+              type="button"
+              class="btn btn-success"
+            >
+              <i class="ri-add-circle-line"></i>
               Update Parcel
             </button>
 
-            <button v-if="!this.update_btn" class="btn btn-success" type="button">
+            <button
+              v-if="!this.update_btn"
+              class="btn btn-success"
+              type="button"
+            >
               <span
                 class="spinner-border spinner-border-sm"
                 role="status"
@@ -446,6 +556,107 @@
       </div>
     </div>
 
+    <!--export pdf-->
+    <div
+      class="modal fade"
+      id="exportPdf"
+      tabindex="-1"
+      aria-labelledby="exportPdfLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title h4" id="exportPdfLabel">
+              Outgoing Parcels Documment
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div>
+              <div v-for="parcel in this.parcels" :key="parcel.id" class="pdf-item">
+                <table class="pdf-table">
+                  <tr>
+                    <td class="td-1">
+                      <div>
+                        <h5 class="h5-pdf">
+                          Package ID : {{ parcel.barcode_id }}
+                        </h5>
+                        <h5 class="h5-pdf">Package name : {{ parcel.name }}</h5>
+                        <h5 class="h5-pdf">
+                          Package type : {{ parcel.package_tag }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Package size : {{ parcel.package_size }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Package weight : {{ parcel.package_weight }} Kg
+                        </h5>
+                      </div>
+                    </td>
+                    <td class="td-2">
+                      <div>
+                        <h5 class="h5-pdf">
+                          From : {{ parcel.branch_from_region }} ({{
+                            parcel.branch_from_name
+                          }})
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Sender name : {{ parcel.sender_name }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Sender phone : {{ parcel.sender_phone }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          {{ parcel.branch_from_region }} Contacts :
+                          {{ parcel.branch_from_contact }}
+                        </h5>
+                      </div>
+                    </td>
+                    <td class="td-2">
+                      <div>
+                        <h5 class="h5-pdf">
+                          Destination : {{ parcel.branch_to_region }} ({{
+                            parcel.branch_to_name
+                          }})
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Receiver name : {{ parcel.receiver_name }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          Receiver phone : {{ parcel.receiver_phone }}
+                        </h5>
+                        <h5 class="h5-pdf">
+                          {{ parcel.branch_to_region }} Contacts :
+                          {{ parcel.branch_to_contact }}
+                        </h5>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-success">Export PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--confirm delete-->
     <div
       class="modal fade"
       id="confitmModal"
@@ -463,17 +674,17 @@
             </h1>
             <h4 class="fw-bold">Confirm Delete</h4>
             <p>
-              Are you sure, what to delete parcel.<br/>
+              Are you sure, what to delete parcel.<br />
               <b>{{ this.delete_data.name }}</b>
             </p>
             <div class="form-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.delete_data.description"
-              placeholder="give reason"
-            />
-          </div>
+              <input
+                type="text"
+                class="form-control"
+                v-model="this.delete_data.description"
+                placeholder="give reason"
+              />
+            </div>
             <div class="d-flex justify-content-center">
               <button
                 :disabled="!this.delete_btn"
@@ -509,90 +720,96 @@
         </div>
       </div>
     </div>
- 
 
-  <div
-    class="modal fade"
-    id="receiveParcel"
-    data-bs-backdrop="static"
-    data-bs-keyboard="false"
-    tabindex="-1"
-    aria-labelledby="receiveParcelLabel"
-    aria-modal="true"
-    role="dialog"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="receiveParcelLabel">
-            Receive Parcel
-          </h5>
-          <button
-            :disabled="!this.receive_btn"
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <div class="d-flex justify-content-center">
-            <h4>{{ this.receive_data.name }}</h4>
+    <!--receive-->
+    <div
+      class="modal fade"
+      id="receiveParcel"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="receiveParcelLabel"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="receiveParcelLabel">Receive Parcel</h5>
+            <button
+              :disabled="!this.receive_btn"
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
-          <div class="d-flex justify-content-between">
-            <div>
-              <h5>Destination</h5>
-              <p>{{ this.receive_data.bname }}</p>
-              <h5>Sender Info</h5>
-              <p>{{ this.receive_data.sname }} <br/>{{ this.receive_data.sphone }} </p>
+          <div class="modal-body">
+            <div class="d-flex justify-content-center">
+              <h4>{{ this.receive_data.name }}</h4>
             </div>
-            <div>
-              <h5>Receiver Info</h5>
-              <p>{{ this.receive_data.rname }}<br/>
-              {{ this.receive_data.rphone }}</p>
+            <div class="d-flex justify-content-between">
+              <div>
+                <h5>Destination</h5>
+                <p>{{ this.receive_data.bname }}</p>
+                <h5>Sender Info</h5>
+                <p>
+                  {{ this.receive_data.sname }} <br />{{
+                    this.receive_data.sphone
+                  }}
+                </p>
+              </div>
+              <div>
+                <h5>Receiver Info</h5>
+                <p>
+                  {{ this.receive_data.rname }}<br />
+                  {{ this.receive_data.rphone }}
+                </p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="abc">Receive Description</label>
+              <input
+                type="text"
+                class="form-control"
+                v-model="this.receive_data.closed_description"
+                placeholder="Enter fulname"
+              />
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="abc">Receive Description</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="this.receive_data.closed_description"
-              placeholder="Enter fulname"
-            />
+          <div class="modal-footer">
+            <button
+              type="button"
+              :disabled="!this.receive_btn"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              v-if="this.receive_btn"
+              @click="receiveParcel"
+              type="button"
+              class="btn btn-success"
+            >
+              Receive
+            </button>
+            <button
+              v-if="!this.receive_btn"
+              class="btn btn-success"
+              type="button"
+            >
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Please Wait...
+            </button>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            :disabled="!this.receive_btn"
-            class="btn btn-danger"
-            data-bs-dismiss="modal"
-          >
-            Close
-          </button>
-          <button
-            v-if="this.receive_btn"
-            @click="receiveParcel"
-            type="button"
-            class="btn btn-success"
-          >
-            Receive
-          </button>
-          <button v-if="!this.receive_btn" class="btn btn-success" type="button">
-            <span
-              class="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            ></span>
-            Please Wait...
-          </button>
         </div>
       </div>
     </div>
-  </div>
-
-
   </div>
 </template>
 
@@ -604,32 +821,34 @@ import moment from "moment";
 export default {
   data() {
     return {
-      phone_list:"",
-      message:"",
+      sdate:"",
+      edate:"",
+      phone_list: "",
+      message: "",
+      send_btn: true,
+      chat_show_btn: true,
       update_btn: true,
       receive_btn: true,
       filter_btn: true,
       delete_btn: true,
-      send_btn: true,
-      chat_show_btn:true,
       parcels_fetch: true,
       errors: "",
       tags: [],
       branches: [],
-      branch_id:"",
+      branch_id: "",
       parcels: [],
       og_parcels: [],
       parcel_data: {},
       receive_data: {
-        closed_description:"Mzigo umepokelewa",
-        id:"",
-        barcode_id:"" 
+        closed_description: "Mzigo umepokelewa",
+        id: "",
+        barcode_id: "",
       },
       delete_data: {
-        id:"",
-        name:"",
-        barcode_id:"",
-        description:"" 
+        id: "",
+        name: "",
+        barcode_id: "",
+        description: "",
       },
       user: this.$attrs.user,
     };
@@ -638,50 +857,65 @@ export default {
     dataFormat(date) {
       return moment(date).format("DD - MM - YYYY");
     },
-    chatShow(){
-        this.chat_show_btn = !this.chat_show_btn
+    priceFormat(price) {
+      price = parseInt(price);
+      return price.toLocaleString();
     },
-    clearChat(){
-      if (confirm('Are you sure want to clear phone list?')) {
-        this.phone_list = ""
+    validateDate(start, end) {
+
+if (start == null || start == '' || end == null || end == '') {
+    alert('Start and End Date are Required')
+    return false;
+} else {
+    if (start > end) {
+        alert('Start date must not be greater than End Date')
+        return false;
+    } else {
+        return true;
+    }
+}
+},
+    chatShow() {
+      this.chat_show_btn = !this.chat_show_btn;
+    },
+    clearChat() {
+      if (confirm("Are you sure want to clear phone list?")) {
+        this.phone_list = "";
       }
     },
     checkInArray(arry_phone, phone) {
-        var res = false
-        for (let index = 0; index < arry_phone.length; index++) {
-            const element = arry_phone[index];
+      var res = false;
+      for (let index = 0; index < arry_phone.length; index++) {
+        const element = arry_phone[index];
 
-            if (element == phone) {
-                res = true
-            }
-
+        if (element == phone) {
+          res = true;
         }
-        return res
+      }
+      return res;
     },
-    addPhoneList(phone){
-      this.chat_show_btn = false
+    addPhoneList(phone) {
+      this.chat_show_btn = false;
 
-        var str_phone = this.phone_list;
+      var str_phone = this.phone_list;
 
-        if (str_phone == "" || str_phone == undefined || str_phone == null) {
-            this.phone_list = phone+","
-
-        } else {
-            var arry_phone = str_phone.split(',')
-            //alert(arry_phone.length)
-            if (this.checkInArray(arry_phone, phone)) {
-                if (confirm(phone + ' aleady exist, do you want to remove it?')) {
-                    const index = arry_phone.indexOf(phone);
-                    if (index > -1) {
-                        arry_phone.splice(index, 1);
-                        this.phone_list = arry_phone.toString();
-                    }
-
-                }
-            } else {
-              this.phone_list = str_phone + phone + ",";
+      if (str_phone == "" || str_phone == undefined || str_phone == null) {
+        this.phone_list = phone + ",";
+      } else {
+        var arry_phone = str_phone.split(",");
+        //alert(arry_phone.length)
+        if (this.checkInArray(arry_phone, phone)) {
+          if (confirm(phone + " aleady exist, do you want to remove it?")) {
+            const index = arry_phone.indexOf(phone);
+            if (index > -1) {
+              arry_phone.splice(index, 1);
+              this.phone_list = arry_phone.toString();
             }
+          }
+        } else {
+          this.phone_list = str_phone + phone + ",";
         }
+      }
     },
     async allTags() {
       var response = await axios.get(
@@ -691,7 +925,7 @@ export default {
         this.tags = response.data.tags;
       } else {
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.error(message, { duration: 5000, dismissible: true });
       }
     },
 
@@ -703,7 +937,7 @@ export default {
         this.branches = response.data.branches;
       } else {
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.error(message, { duration: 5000, dismissible: true });
       }
     },
     async outgoingParcel() {
@@ -720,14 +954,13 @@ export default {
         this.parcels_fetch = false;
       } else {
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.error(message, { duration: 5000, dismissible: true });
       }
     },
     parcelInfo(parcel) {
       //let myTarget = JSON.parse(JSON.stringify(pac))
       this.parcel_data = parcel;
-      console.log(parcel)
-     
+      console.log(parcel);
     },
     async updateParcel() {
       this.errors = "";
@@ -746,13 +979,13 @@ export default {
         this.$toast.success(message, { duration: 7000, dismissible: true });
         window.location.reload();
       } else {
-        if(response.data.code == 444){
-            localStorage.removeItem("user_token")
-            localStorage.removeItem("user")
-            window.location.reload(); 
+        if (response.data.code == 444) {
+          localStorage.removeItem("user_token");
+          localStorage.removeItem("user");
+          window.location.reload();
         }
         var _errors = response.data.message;
-          this.$toast.error(_errors, { duration: 7000, dismissible: true });
+        this.$toast.error(_errors, { duration: 7000, dismissible: true });
         this.update_btn = true;
       }
     },
@@ -760,11 +993,14 @@ export default {
       this.errors = "";
       this.send_btn = false;
 
-      var msg = this.message
-      var phone_list = this.phone_list
+      var msg = this.message;
+      var phone_list = this.phone_list;
 
       var response = await axios
-        .post(this.$store.state.api_url + "/sms/multiple", {message:msg, phone_list})
+        .post(this.$store.state.api_url + "/sms/multiple", {
+          message: msg,
+          phone_list,
+        })
         .catch((errors) => {
           this.send_btn = true;
           var message = "Network or Request Errors";
@@ -777,13 +1013,13 @@ export default {
         this.$toast.success(message, { duration: 7000, dismissible: true });
         //window.location.reload();
       } else {
-        if(response.data.code == 444){
-            localStorage.removeItem("user_token")
-            localStorage.removeItem("user")
-            window.location.reload(); 
+        if (response.data.code == 444) {
+          localStorage.removeItem("user_token");
+          localStorage.removeItem("user");
+          window.location.reload();
         }
         var _errors = response.data.message;
-          this.$toast.error(_errors, { duration: 7000, dismissible: true });
+        this.$toast.error(_errors, { duration: 7000, dismissible: true });
         this.send_btn = true;
       }
     },
@@ -804,35 +1040,34 @@ export default {
         this.$toast.success(message, { duration: 7000, dismissible: true });
         window.location.reload();
       } else {
-        if(response.data.code == 444){
-            localStorage.removeItem("user_token")
-            localStorage.removeItem("user")
-            window.location.reload(); 
+        if (response.data.code == 444) {
+          localStorage.removeItem("user_token");
+          localStorage.removeItem("user");
+          window.location.reload();
         }
         var _errors = response.data.message;
-          this.$toast.error(_errors, { duration: 7000, dismissible: true });
+        this.$toast.error(_errors, { duration: 7000, dismissible: true });
         this.receive_btn = true;
       }
     },
-    receiveInfo(parcel){
+    receiveInfo(parcel) {
+      this.receive_data.name = parcel.name;
+      this.receive_data.rname = parcel.receiver_name;
+      this.receive_data.rphone = parcel.receiver_phone;
+      this.receive_data.sname = parcel.sender_name;
+      this.receive_data.sphone = parcel.sender_phone;
+      this.receive_data.bname = parcel.bname;
+      this.receive_data.id = parcel.id;
+      this.receive_data.barcode_id = parcel.barcode_id;
 
-        this.receive_data.name = parcel.name
-        this.receive_data.rname = parcel.receiver_name
-        this.receive_data.rphone = parcel.receiver_phone
-        this.receive_data.sname = parcel.sender_name
-        this.receive_data.sphone = parcel.sender_phone
-        this.receive_data.bname = parcel.bname
-        this.receive_data.id = parcel.id
-        this.receive_data.barcode_id = parcel.barcode_id
-
-        console.log(parcel)
+      console.log(parcel);
     },
-    deleteInfo(id,name,barcode_id){
-      this.delete_data.id = id
-      this.delete_data.name = name
-      this.delete_data.barcode_id = barcode_id
+    deleteInfo(id, name, barcode_id) {
+      this.delete_data.id = id;
+      this.delete_data.name = name;
+      this.delete_data.barcode_id = barcode_id;
 
-      console.log(name)
+      console.log(name);
     },
     async deleteParcel() {
       this.errors = "";
@@ -842,7 +1077,11 @@ export default {
       var description = this.delete_data.description;
 
       var response = await axios
-        .post(this.$store.state.api_url + "/parcel/delete", { id, barcode_id, description })
+        .post(this.$store.state.api_url + "/parcel/delete", {
+          id,
+          barcode_id,
+          description,
+        })
         .catch((errors) => {
           this.delete_btn = true;
           var message = "Network or Request Errors";
@@ -865,16 +1104,52 @@ export default {
       }
     },
     filterParcel() {
-        var bid = this.branch_id
-        //let level = this.levels.find((i) => i.id === level_id);
-        if(bid == 0){
-          this.parcels = this.og_parcels
-        }else{
-          let _parcel = this.og_parcels.filter((i) => i.branch_to == bid);
-          this.parcels = _parcel;
-        }
-  
+      var bid = this.branch_id;
+      //let level = this.levels.find((i) => i.id === level_id);
+      if (bid == 0) {
+        this.parcels = this.og_parcels;
+      } else {
+        let _parcel = this.og_parcels.filter((i) => i.branch_to == bid);
+        this.parcels = _parcel;
+      }
     },
+    async filterMessageDate() {
+
+var sdate = this.sdate;
+var edate = this.edate;
+
+if (this.validateDate(sdate, edate)) {
+
+  this.errors = "";
+  this.parcels_fetch = true;
+  this.branch_id = 0
+
+  var response = await axios
+    .post(this.$store.state.api_url + "/parcel/outgoing-filter", {
+      sdate, edate
+    })
+    .catch((errors) => {
+      this.parcels_fetch = false;
+      var message = "Network or Server Errors";
+      this.$toast.error(message, { duration: 7000, dismissible: true });
+    });
+
+  if (response.data.success) {
+    this.parcels_fetch = false;
+    this.parcels = response.data.parcels;
+    this.og_parcels = response.data.parcels;
+  } else {
+    if (response.data.code == 444) {
+      localStorage.removeItem("user_token");
+      localStorage.removeItem("user");
+      window.location.reload();
+    }
+    var msg = response.data.message;
+    this.$toast.error(msg, { duration: 7000, dismissible: true });
+    this.parcels_fetch = false;
+  }
+}
+},
   },
   created() {
     this.$store.state.page_name = "Outgoing Parcel";

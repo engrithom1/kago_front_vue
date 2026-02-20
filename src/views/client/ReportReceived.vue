@@ -29,12 +29,18 @@
       </div>
       <div v-if="this.parcels" class="card mb-3">
         <div class="card-header d-flex justify-content-between table-responsive">
-            <h6></h6>
+          <div>
+          <div v-if="this.parcel_filter" class="text-center">
+            <div class="spinner-grow text-success" role="status"></div>
+            <div class="spinner-grow text-danger" role="status"></div>
+            <div class="spinner-grow text-warning" role="status"></div>
+          </div>
+        </div>
             <div class="d-flex">
-                <input type="date" class="form-control" name="" id="">
-            <input type="date" class="form-control" name="" id="">
-            <select class="form-select form-control simple-select" name="branch_select" id="branch_select" style="width:auto">
-                      <option selected value="">From All Destination</option>
+                <input type="date" class="form-control" v-model="this.sdate" id="sdate">
+            <input type="date" class="form-control" v-model="this.edate" id="edate">
+            <select class="form-select form-control simple-select" v-model="this.fbranch" id="branch_select" style="width:auto">
+                      <option selected value="0">From All Destination</option>
              <option :disabled="!branch.status" class="text-capitalize"
                       v-for="branch in branches"
                       :key="branch.id"
@@ -43,8 +49,8 @@
                       {{ branch.name }}
               </option>
                     </select>
-                    <select class="form-select form-control simple-select" name="branch_select" id="branch_select" style="width:auto">
-                      <option selected value="">All Final Destination</option>
+                    <select class="form-select form-control simple-select" v-model="this.tbranch" id="branch_select" style="width:auto">
+                      <option selected value="0">All Final Destination</option>
              <option :disabled="!branch.status" class="text-capitalize"
                       v-for="branch in branches"
                       :key="branch.id"
@@ -53,14 +59,15 @@
                       {{ branch.name }}
               </option>
                     </select>
-            <button id="sms_btn" class="btn btn-success text-white simple-btn">Filter</button>
+            <button id="filter_btn"  @click="this.filterParcelDate"
+            :disabled="this.parcel_filter" class="btn btn-success text-white simple-btn">Filter</button>
             
             </div>
                 
         </div>
         
         <div class="card-body">
-            <h5 class="text-center mt-3">On Transit Parcels For All Destinations</h5>
+            <!--h5 class="text-center mt-3">On Transit Parcels For All Destinations</h5-->
           <!-- Table start -->
           <div class="table-responsive">
             <div
@@ -93,23 +100,23 @@
                         <td class="sorting_1">{{ index+1 }}</td>
                         <td>{{ parcel.name }}</td>
                         <td>
-                         {{parcel.price}}
+                         {{this.priceFormat(parcel.price)}}
                         </td>
                         <td>
                           <span class="badge border border-success text-success"
-                            >Urafiki</span
+                            >{{ parcel.bfname }}</span
                           >
                           
                         </td>
                         <td>
                           <span class="badge border border-danger text-danger"
-                            >Tunduma</span
+                            >{{ parcel.btname }}</span
                           >
                         </td>
                        <td>{{ parcel.fulname }}</td>
-                       <td>Mchizi mox</td>
+                       <td>{{ parcel.receive_staff }}</td>
                        <td> {{this.dateFormat(parcel.created_at)}}</td>
-                       <td> {{this.dateFormat(parcel.created_at)}}</td>
+                       <td> {{this.dateFormat(parcel.closed_at)}}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -134,8 +141,12 @@ export default {
     return {
       filter_btn: true,
       parcels_fetch: true,
+      parcel_filter: false,
       errors: "",
-      tags: [],
+      fbranch:0,
+      tbranch:0,
+      sdate:"",
+      edate:"",
       branches: [],
       parcels: [],
       user: this.$attrs.user,
@@ -145,21 +156,27 @@ export default {
     dateFormat(date){
       return moment(date).format("DD - MM - YYYY");
     },
-    async allTags() {
-      var response = await axios.get(
-        this.$store.state.api_url + "/tag/all-tags"
-      );
-      if (response.data.success) {
-        this.tags = response.data.tags;
-      } else {
-        var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
-      }
+    priceFormat(price) {
+      price = parseInt(price)
+      return price.toLocaleString()
     },
+    validateDate(start, end) {
 
-    async otherBranches() {
+if (start == null || start == '' || end == null || end == '') {
+    alert('Start and End Date are Required')
+    return false;
+} else {
+    if (start > end) {
+        alert('Start date must not be greater than End Date')
+        return false;
+    } else {
+        return true;
+    }
+}
+},
+    async allBranches() {
       var response = await axios.get(
-        this.$store.state.api_url + "/branch/other-branches"
+        this.$store.state.api_url + "/branch/all-branches"
       );
       if (response.data.success) {
         this.branches = response.data.branches;
@@ -168,9 +185,9 @@ export default {
         this.$toast.danger(message, { duration: 5000, dismissible: true });
       }
     },
-    async outgoingParcel() {
+    async receivedParcel() {
       var response = await axios
-        .get(this.$store.state.api_url + "/parcel/outgoing")
+        .get(this.$store.state.api_url + "/report/received")
         .catch((errors) => {
           var message = "Network or Server Errors";
           this.$toast.error(message, { duration: 7000, dismissible: true });
@@ -184,12 +201,50 @@ export default {
         this.$toast.danger(message, { duration: 5000, dismissible: true });
       }
     },
+    async filterParcelDate() {
+
+var sdate = this.sdate;
+var edate = this.edate;
+var fbranch = this.fbranch
+var tbranch = this.tbranch
+
+if (this.validateDate(sdate, edate)) {
+
+  this.errors = "";
+  this.parcel_filter = true;
+  this.branch_id = 0
+
+  var response = await axios
+    .post(this.$store.state.api_url + "/report/received-filter", {
+      sdate, edate, fbranch, tbranch
+    })
+    .catch((errors) => {
+      this.parcel_filter = false;
+      var message = "Network or Server Errors";
+      this.$toast.error(message, { duration: 7000, dismissible: true });
+    });
+
+  if (response.data.success) {
+    this.parcel_filter = false;
+    this.parcels = response.data.parcels;
+   
+  } else {
+    if (response.data.code == 444) {
+      localStorage.removeItem("user_token");
+      localStorage.removeItem("user");
+      window.location.reload();
+    }
+    var msg = response.data.message;
+    this.$toast.error(msg, { duration: 7000, dismissible: true });
+    this.parcel_filter = false;
+  }
+}
+},
   },
   created() {
     this.$store.state.page_name = "Received Report";
-    this.allTags();
-    this.otherBranches();
-    this.outgoingParcel();
+    this.allBranches();
+    this.receivedParcel();
   },
 };
 </script>

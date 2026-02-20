@@ -10,16 +10,65 @@
 <template>
   <div>
     <div class="p-2">
-      <div class="card-header d-flex justify-content-between m-3">
-        <div>
+
+      <div class="row">
+        <div class="col-12">
+          <div>
           <div v-if="this.customers_search" class="text-center">
             <div class="spinner-grow text-success" role="status"></div>
             <div class="spinner-grow text-danger" role="status"></div>
             <div class="spinner-grow text-warning" role="status"></div>
           </div>
         </div>
+        </div>
+        <div class="col-sm-12 col-md-6">
+            <div class="d-flex">
+          <input type="date" class="form-control simple-select" v-model="this.sdate" id="sdate">
+          <input type="date" class="form-control simple-select" v-model="this.edate" id="edate">
+           <select
+            class="form-select form-control simple-select"
+            name="filter_type"
+            id="filter_type"
+            v-model="this.filter_type"
+            style="width: auto"
+          >
+            <option value="0">Send Parcel</option>
+            <option value="1">Joined At</option>
+          </select>
+          <button
+            @click="this.filterCustomers"
+            :disabled="this.customers_search"
+            id="search_btn"
+            class="btn btn-success simple-btn"
+          >
+            filter
+          </button>
+        </div>
+        </div>
+        <div class="col-sm-12 col-md-1"></div>
+      <div class="col-sm-12 col-md-5">
+        
         <div class="d-flex">
+          
+          <button
+            @click="this.chatShow"
+              v-if="this.chat_show_btn"
+              id="sms_btn"
+            class="btn btn-info simple-btn w-100"
+          >
+            Send Message
+          </button>
+          <button
+            @click="this.chatShow"
+              v-if="!this.chat_show_btn"
+              id="sms_btn"
+            class="btn btn-danger simple-btn w-100"
+          >
+            Close Message
+          </button>
+          <span class="m-1"></span>
           <input
+           class="form-control simple-select"
             type="text"
             placeholder="Enter phone or name"
             v-model="this.phone_name"
@@ -34,6 +83,70 @@
           </button>
         </div>
       </div>
+      </div>
+
+    <!--message view-->
+      <div v-if="!this.chat_show_btn" class="m-3">
+      <div class="row">
+        <div class="col-sm-12 col-md-4">
+          <textarea
+            placeholder="Message goes here...."
+            class="form-control"
+            v-model="this.message"
+            id="message"
+            cols="30"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="col-sm-12 col-md-8">
+          <textarea
+            placeholder="0768448525,0614928525......"
+            class="form-control"
+            v-model="this.phone_list"
+            id="message"
+            cols="30"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 col-sm-4 col-md-4">
+          <div class="d-flex justify-content-end">
+            <button
+              @click="this.sendMessages"
+              v-if="this.send_btn"
+              class="btn btn-success"
+            >
+              Send message
+            </button>
+            <button v-if="!this.send_btn" class="btn btn-success" type="button">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Please Wait...
+            </button>
+          </div>
+        </div>
+        <div class="col-8 col-sm-8 col-md-8">
+          <div class="d-flex justify-content-start">
+            <button @click="this.chatShow" class="btn btn-danger">
+              Close Chats
+            </button>
+            <span class="m-1"></span>
+            <button
+              v-if="this.phone_list"
+              @click="this.clearChat"
+              class="btn btn-dark"
+            >
+              Clear List
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end views-->
 
       <div v-if="this.customers_fetch" class="">
         <div class="text-center">
@@ -62,10 +175,11 @@
                     <th>No</th>
                     <th>Fulname</th>
                     <th>Phone no</th>
-                    <th>Events</th>
+                    <th>Sents</th>
+                    <th>Total Paid</th>
                     <th>Created By</th>
-                    <th>Created</th>
-                    <th>Action</th>
+                    <th>Joined At</th>
+                    <th>Parcels</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -75,7 +189,12 @@
                     <td>{{ customer.phone_no }}</td>
                     <td>
                       <span class="badge border border-danger text-danger">{{
-                        customer.invorved
+                        this.nullFormat(customer.sents)
+                      }}</span>
+                    </td>
+                    <td>
+                      <span class="badge border border-success text-success">{{
+                        this.priceFormat(customer.paids)
                       }}</span>
                     </td>
 
@@ -89,7 +208,7 @@
                         href="#exampleModalFullscreen"
                         :disabled="this.customers_search"
                       >
-                        <i class="ri-award-fill"></i> events
+                        <i class="ri-award-fill"></i> Parcel
                       </button>
                     </td>
                   </tr>
@@ -264,6 +383,13 @@ export default {
       form: {
         name: "",
       },
+      filter_type:0,
+      sdate:"",
+      edate:"",
+      message: "",
+      send_btn: true,
+      chat_show_btn: true,
+      phone_list: "",
       user: this.$attrs.user,
     };
   },
@@ -272,10 +398,90 @@ export default {
       return moment(date).format("DD - MM - YYYY");
     },
     priceFormat(price) {
+      if (price == null || price == undefined) {
+          return 0
+        }
       return price.toLocaleString();
     },
+      nullFormat(sents) {
+        if (sents == null || sents == undefined) {
+          return 0
+        }
+      return sents.toLocaleString();
+    },
+        validateDate(start, end) {
+
+if (start == null || start == '' || end == null || end == '') {
+    alert('Start and End Date are Required')
+    return false;
+} else {
+    if (start > end) {
+        alert('Start date must not be greater than End Date')
+        return false;
+    } else {
+        return true;
+    }
+}
+},
     customInfo(fulname) {
       this.customer_fulname = fulname;
+    },
+       async chatShow() {
+      this.phone_list = await this.phoneList(this.customers)  
+      this.chat_show_btn = !this.chat_show_btn;
+    },
+      clearChat() {
+      if (confirm("Are you sure want to clear phone list?")) {
+        this.phone_list = "";
+      }
+    },
+    async phoneList(customers) {
+
+      var lists = "";
+      if(customers){
+      for (let index = 0; index < customers.length; index++) {
+        const element = customers[index].phone_no;
+        lists += element + ",";
+
+      }
+      return lists;
+      }else{
+        return lists
+      }
+    },
+      async sendMessages() {
+      this.errors = "";
+      this.send_btn = false;
+
+      var msg = this.message;
+      var phone_list = this.phone_list;
+
+      var response = await axios
+        .post(this.$store.state.api_url + "/sms/multiple", {
+          message: msg,
+          phone_list,
+        })
+        .catch((errors) => {
+          this.send_btn = true;
+          var message = "Network or Request Errors";
+          this.$toast.error(message, { duration: 7000, dismissible: true });
+        });
+
+      if (response.data.success) {
+        this.send_btn = true;
+        var message = response.data.message;
+        this.$toast.success(message, { duration: 7000, dismissible: true });
+        //window.location.reload();
+      } else {
+        if (response.data.code == 444) {
+          localStorage.removeItem("user_token");
+          localStorage.removeItem("user");
+          window.location.reload();
+        }
+        var _errors = response.data.message;
+        this.$toast.error(_errors, { duration: 7000, dismissible: true });
+        this.send_btn = true;
+      }
     },
     async allCustomers() {
       var response = await axios.get(
@@ -286,7 +492,7 @@ export default {
         this.customers_fetch = false;
       } else {
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.error(message, { duration: 5000, dismissible: true });
       }
     },
     async searchCustomers() {
@@ -314,6 +520,43 @@ export default {
         if (response.data.success) {
           this.customers_search = false;
           this.customers = response.data.customers;
+          this.phone_list = await this.phoneList(response.data.customers)  
+        } else {
+          if (response.data.code == 444) {
+            localStorage.removeItem("user_token");
+            localStorage.removeItem("user");
+            window.location.reload();
+          }
+          var msg = response.data.message;
+          this.$toast.error(msg, { duration: 7000, dismissible: true });
+          this.customers_search = false;
+        }
+      }
+    },
+    async filterCustomers() {
+      var sdate = this.sdate;
+      var edate = this.edate;
+      var filter_type = this.filter_type;
+
+      if (this.validateDate(sdate, edate)) {
+    
+        this.errors = "";
+        this.customers_search = true;
+
+        var response = await axios
+          .post(this.$store.state.api_url + "/user/filter-customers", {
+            filter_type, sdate, edate
+          })
+          .catch((errors) => {
+            this.customers_search = false;
+            var message = "Network or Server Errors";
+            this.$toast.error(message, { duration: 7000, dismissible: true });
+          });
+
+        if (response.data.success) {
+          this.customers_search = false;
+          this.customers = response.data.customers;
+          this.phone_list = await this.phoneList(response.data.customers)  
         } else {
           if (response.data.code == 444) {
             localStorage.removeItem("user_token");

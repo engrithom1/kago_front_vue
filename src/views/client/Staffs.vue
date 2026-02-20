@@ -64,6 +64,7 @@
                   <tr>
                     <th>Photo</th>
                     <th>Fulname</th>
+                    <th>Contacts</th>
                     <th>Branch</th>
                     <th>Role</th>
                     <th>Status</th>
@@ -82,11 +83,14 @@
                       />
                     </th>
                     <td>{{ staff.fulname }}</td>
+                    <td>{{ staff.username }}</td>
                     <td>{{ staff.bname }}</td>
                     <td>
-                      <span v-if="staff.role == 2" class="badge border border-danger text-danger"
-                        >Admin</span>
-                        <span v-if="staff.role == 1" class="badge border border-success text-success"
+                      <span v-if="staff.role == 2 && staff.created_by == 1" title="Super Manager" class="badge border border-danger text-danger"
+                        >Manager</span>
+                      <span v-if="staff.role == 2 && staff.created_by != 1" title="Branch Manager" class="badge border border-info text-info"
+                        >B.Manager</span>
+                        <span v-if="staff.role == 1" title="Staff" class="badge border border-success text-success"
                         >Staff</span>  
                     </td>
                     <td>
@@ -96,13 +100,13 @@
                     <td>{{ this.dataFormat(staff.create_at) }}</td>
                     <td>{{ staff.created_name }}</td>
                     <td>
-                      <a class="btn btn-success btn-sm"
+                      <a v-if="staff.created_by != 1" class="btn btn-success btn-sm"
                     data-bs-toggle="modal"
                     href="#editStaff"
                     @click="this.updateStaffInfo(staff)"
                         ><i class="ri-mark-pen-line"></i></a
                       >|
-                      <a  @click="this.deleteData(staff.id, staff.fulname)"
+                      <a v-if="this.user.creater == 1 && staff.created_by != 1"@click="this.deleteData(staff.id, staff.fulname)"
                     class="btn btn-danger btn-sm"
                     data-bs-toggle="modal"
                     href="#confitmModal"
@@ -339,7 +343,7 @@
               v-model="this.update_data.role"
               aria-label="Default select example"
             >
-              <option value="2">Admin</option>
+              <option value="2">Branch Manager</option>
               <option value="1">Staff</option>
             </select>
           </div>

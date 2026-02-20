@@ -295,7 +295,6 @@
       </div>
     </div>
  
-
   <div
     class="modal fade"
     id="createBranch"
@@ -321,9 +320,7 @@
           ></button>
         </div>
         <div class="modal-body">
-          <div class="d-flex justify-content-center">
-            <p class="text-danger">{{ this.errors }}</p>
-          </div>
+          
 
           <div class="form-group">
             <label for="branch_name">Destination Name</label>
@@ -331,6 +328,17 @@
               class="form-control"
               type="text"
               v-model="this.form_data.name"
+              id=""
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="branch_name">Contact</label>
+            <input
+              class="form-control"
+              type="text"
+              placeholder="0768448525"
+              v-model="this.form_data.contacts"
               id=""
             />
           </div>
@@ -393,6 +401,9 @@
               placeholder="Enter fulname"
             />
           </div>
+          <div class="d-flex justify-content-center">
+            <p class="text-danger">{{ this.errors }}</p>
+          </div>
         </div>
         <div class="modal-footer">
           <button
@@ -449,16 +460,23 @@
           ></button>
         </div>
         <div class="modal-body">
-          <div class="d-flex justify-content-center">
-            <p class="text-danger">{{ this.errors }}</p>
-          </div>
-
+         
           <div class="form-group">
             <label for="branch_name">Destination Name</label>
             <input
               class="form-control"
               type="text"
               v-model="this.update_data.name"
+              id=""
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="branch_name">Contact</label>
+            <input
+              class="form-control"
+              type="text"
+              v-model="this.update_data.contacts"
               id=""
             />
           </div>
@@ -533,6 +551,10 @@
               placeholder="Enter fulname"
             />
           </div>
+
+          <div class="d-flex justify-content-center">
+            <p class="text-danger">{{ this.errors }}</p>
+          </div>
         </div>
         <div class="modal-footer">
           <button
@@ -563,6 +585,7 @@
       </div>
     </div>
   </div>
+
 </div>
 </template>
 
@@ -596,6 +619,7 @@ export default {
         district: "",
         location: "",
         description: "",
+        contacts:""
       },
       update_data: {
         name: "",
@@ -604,6 +628,7 @@ export default {
         location: "",
         description: "",
         status: "",
+        contacts:"",
         id: "",
       },
       delete_data: {
@@ -626,7 +651,6 @@ export default {
     selectedRegion() {
       var region = this.form_data.region;
       let reg_data = this.regions.find((i) => i.id === region);
-
       var districts = reg_data.district.split(",");
       //let clazs = this.claszs.filter((i) => i.level === level.level);
       this.districts = districts;
@@ -644,8 +668,11 @@ export default {
       }
     },
     async usersAndStatistics() {
-      var response = await axios.get(
-        this.$store.state.api_url + "/branch/users-and-statistics"
+
+      var branch_id = this.branch.id
+      
+      var response = await axios.post(
+        this.$store.state.api_url + "/branch/users-and-statistics",{branch_id}
       );
       if (response.data.success) {
         this.staffs = response.data.staffs;
@@ -748,11 +775,13 @@ export default {
         this.$toast.success(message, { duration: 5000, dismissible: true });
       }
     },
-    branchInfo(branch) {
+    async branchInfo(branch) {
+
       this.branch_info = true;
       this.branch = branch;
 
-      this.usersAndStatistics();
+      await this.usersAndStatistics();
+
     },
     updateBranchInfo(branch) {
       console.log(branch);
@@ -761,6 +790,7 @@ export default {
       this.update_districts = districts;
 
       this.update_data.name = branch.name;
+      this.update_data.contacts = branch.contacts;
       this.update_data.region = branch.region_id;
       this.update_data.location = branch.location;
       this.update_data.description = branch.description;

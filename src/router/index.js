@@ -18,8 +18,14 @@ import Revenue_Report from "../views/client/ReportRevenue.vue"
 import Transit_Report from "../views/client/ReportTransit.vue"
 import Received_Report from "../views/client/ReportReceived.vue"
 import Removed_Report from "../views/client/ReportRemoved.vue"
+import Message_Report from "../views/client/ReportMassage.vue"
+
 ///admin file views
 import Admin_dashbord from "../views/admin/Admin_Dashbord.vue"
+import Active_Company from "../views/admin/ActiveCompany.vue"
+import Expired_Company from "../views/admin/ExpiredCompany.vue"
+import Messaging from "../views/admin/Messaging.vue"
+import Admin_profile from "../views/admin/ProfilePage.vue"
 
 var user_cry = localStorage.getItem("user")  || "";
 var user = CryptoJS.AES.decrypt(user_cry, 'user').toString(CryptoJS.enc.Utf8) || null
@@ -31,10 +37,14 @@ function authManager(){
     if(user.role == 3){
       return true
     }else{
-      return {name:'NotParmit'}
+      if(user.role < 3){
+        return {name:'Dashbord'}
+      }else{
+        return {name:'NotParmit'}
+      }
     }
   }else{
-    return {name:'Dashbord'}
+    return {name:'admindashbord'}
   }
 }
 
@@ -44,7 +54,29 @@ function authAdmin(){
     if(user.role == 2){
       return true
     }else{
-      return {name:'NotParmit'}
+      if(user.role == 3){
+        return {name:'admindashbord'}
+      }else{
+        return {name:'NotParmit'}
+      }
+    }
+  }else{
+    return {name:'Dashbord'}
+  }
+}
+
+function authOnlyAdmin(){
+  if(user){
+    //user = JSON.parse(user)
+    if(user.role == 2 && user.creater == 1){
+      return true
+    }else{
+      if(user.role == 3){
+        return {name:'admindashbord'}
+      }else{
+        return {name:'NotParmit'}
+      }
+      
     }
   }else{
     return {name:'Dashbord'}
@@ -57,7 +89,11 @@ function authClient(){
     if(user.role == 1 || user.role == 2){
       return true
     }else{
-      return {name:'NotParmit'}
+      if(user.role == 3){
+        return {name:'admindashbord'}
+      }else{
+        return {name:'NotParmit'}
+      }
     }
   }else{
     return {name:'Dashbord'}
@@ -114,7 +150,7 @@ const routes = [
   },
   {
     path: '/revenue-report',
-    beforeEnter:authAdmin,
+    beforeEnter:authOnlyAdmin,
     name: 'revenue_report',
     component: Revenue_Report
   },
@@ -132,9 +168,15 @@ const routes = [
   },
   {
     path: '/removed-report',
-    beforeEnter:authAdmin,
+    beforeEnter:authOnlyAdmin,
     name: 'removed_report',
     component: Removed_Report
+  },
+  {
+    path: '/message-report',
+    beforeEnter:authOnlyAdmin,
+    name: 'message_report',
+    component: Message_Report
   },
   {
     path: '/profile',
@@ -144,10 +186,35 @@ const routes = [
   },
   {
     path: '/admin',
-    /*beforeEnter:authAdmin,*/
+    beforeEnter:authManager,
     name: 'admindashbord',
     component: Admin_dashbord
-  },/*
+  },
+  {
+    path: '/active-companies',
+    beforeEnter:authManager,
+    name: 'activecompany',
+    component: Active_Company
+  },
+  {
+    path: '/expired-companies',
+    beforeEnter:authManager,
+    name: 'expiredcompany',
+    component: Expired_Company
+  },
+  {
+    path: '/messaging',
+    beforeEnter:authManager,
+    name: 'messaging',
+    component: Messaging
+  },
+  {
+    path: '/admin-profile',
+    beforeEnter:authManager,
+    name: 'admin-profile',
+    component: Admin_profile
+  },
+  /*
   {
     path: '/addstudent',
     name: 'Addstudent',

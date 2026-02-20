@@ -75,12 +75,12 @@
       <div class="card-body">
         <div class="row">
           <div class="col-md-3">
-            <label class="form-label" for="abc">Package name *</label>
+            <label class="form-label" for="abc">Package Label *</label>
             <input
               type="text"
               class="form-control"
               v-model="this.parcel.name"
-              placeholder="Parcel name"
+              placeholder="Parcel label"
             />
           </div>
 
@@ -99,13 +99,13 @@
           </div>
 
           <div class="col-md-3">
-            <label class="form-label" for="abc">Package Type *</label>
+            <label class="form-label" for="abc">Package Name *</label>
             <select
               class="form-select"
                v-model="this.parcel.package_tag"
               aria-label="Default select example"
             >
-             <option selected disabled value="">Parcel type (tag)</option>
+             <option selected disabled value="">Parcel Name</option>
              <option :disabled="!tag.status" class="text-capitalize"
                       v-for="tag in tags"
                       :key="tag.id"
@@ -303,9 +303,11 @@ export default {
             window.location.reload(); 
         }
         this.errors = response.data.message;
+        this.$toast.error(response.data.message, { duration: 3000, dismissible: true });
         this.add_btn = true;
       }
     }
+    
   },
   created() {
     this.$store.state.page_name = "Add Parcel" 

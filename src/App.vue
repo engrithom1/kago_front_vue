@@ -12,34 +12,58 @@
     <div class="sidebar-container">
 
       <!-- Sidebar menu starts -->
-      <div class="sidebar-menu">
+          <div v-if="this.user.role == 3" class="sidebar-menu">
         <!-- Top curve -->
         <div class="nav-circle1"></div>
         <div class="nav-square1"></div>
-        <a href="/" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard">
+        <router-link to="/admin" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard">
           <i class="ri-layout-grid-fill"></i>
-        </a>
-        <a href="/add_parcel" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Add Package">
-          <i class="ri-gift-fill"></i>
-        </a>
-        <a href="/incoming_parcels" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Incoming Parcel">
-          <i class="ri-suitcase-3-fill"></i>
-        </a>
-        <a href="/outgoing_parcels" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Outgoing Parcel">
-          <i class="ri-luggage-cart-fill"></i>
-        </a>
-        <a href="/revenue-report" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Subscribers">
-          <i class="ri-money-dollar-box-fill"></i>
-        </a>
-        <a href="/destination" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Subscribers">
-          <i class="ri-node-tree"></i>
-        </a>
-        <a href="/staffs" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Destinations">
-          <i class="ri-team-fill"></i>
-        </a>
-        <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="User Profile">
+        </router-link>
+        <router-link to="/active-companies" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Active Companies">
+          <i class="ri-bank-fill"></i>
+        </router-link>
+        <router-link to="/expired-companies" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Expired Companies">
+          <i class="ri-bank-fill"></i>
+        </router-link>
+        <router-link to="/messaging" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Subscribers">
+          <i class="ri-mail-send-fill"></i>
+        </router-link>
+        <router-link to="/admin-profile" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="User Profile">
           <i class="ri-user-2-fill"></i>
-        </a>
+        </router-link>
+        <!-- Bottom curve -->
+        <div class="nav-circle2"></div>
+        <div class="nav-square2"></div>
+      </div>
+
+      <div v-if="this.user.role <= 2" class="sidebar-menu">
+        <!-- Top curve -->
+        <div class="nav-circle1"></div>
+        <div class="nav-square1"></div>
+        <router-link to="/" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard">
+          <i class="ri-layout-grid-fill"></i>
+        </router-link>
+        <router-link to="/add_parcel" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Add Package">
+          <i class="ri-gift-fill"></i>
+        </router-link>
+        <router-link to="/incoming_parcels" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Incoming Parcel">
+          <i class="ri-suitcase-3-fill"></i>
+        </router-link>
+        <router-link to="/outgoing_parcels" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Outgoing Parcel">
+          <i class="ri-luggage-cart-fill"></i>
+        </router-link>
+        <router-link v-if="this.user.role == 2" to="/revenue-report" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Subscribers">
+          <i class="ri-money-dollar-box-fill"></i>
+        </router-link>
+        <router-link v-if="this.user.role == 2" to="/destination" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Subscribers">
+          <i class="ri-node-tree"></i>
+        </router-link>
+        <router-link v-if="this.user.role == 2" to="/staffs" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Destinations">
+          <i class="ri-team-fill"></i>
+        </router-link>
+        <router-link to="/profile" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="User Profile">
+          <i class="ri-user-2-fill"></i>
+        </router-link>
         <!-- Bottom curve -->
         <div class="nav-circle2"></div>
         <div class="nav-square2"></div>
@@ -61,61 +85,78 @@
 
         <!-- App brand starts -->
         <div class="app-brand me-3 d-flex align-items-center">
-          <a href="index.html" class="d-lg-block d-none">
+          <router-link to="#" class="d-lg-block d-none">
             <h4 class="text-uppercase">{{ this.user.company_name }}</h4>
-          </a>
-          <a href="index.html" class="d-lg-none d-md-block">
+          </router-link>
+          <router-link to="#" class="d-lg-none d-md-block">
             <h4 class="text-uppercase">{{ this.user.company_label }}</h4>
-          </a>
+          </router-link>
         </div>
         <!-- App brand ends -->
 
         <!-- Top Menu Start -->
         <div class="cd-dropdown-wrapper">
-          <a class="cd-dropdown-trigger" href="#0"><i class="ri-menu-unfold-line menu-icon"></i><span
-              class="menu-text">Menu</span></a>
+          <router-link class="cd-dropdown-trigger" to=""><i class="ri-menu-unfold-line menu-icon"></i><span
+              class="menu-text">Menu</span></router-link>
           <nav class="cd-dropdown">
-
-            <ul class="cd-dropdown-content">
+<ul v-if="this.user.role == 3" class="cd-dropdown-content">
               <li>
-                <a class="active-menu" href="/">Dashboard</a>
+                <router-link class="active-menu" to="/admin">Dashboard</router-link>
+              </li>
+              <li>
+                <router-link class="" to="/active-companies">Active Companies</router-link>
+              </li>
+              <li>
+                <router-link class="" to="/expired-companies">Expire Companies</router-link>
+              </li>
+              <li>
+                <router-link class="" to="/messaging">Messages</router-link>
+              </li>
+              <li>
+                <router-link class="" to="/admin-profile">Profile</router-link>
+              </li>
+            </ul>
+
+            <ul v-if="this.user.role <= 2" class="cd-dropdown-content">
+              <li>
+                <router-link class="active-menu" to="/">Dashboard</router-link>
               </li>
               <li class="has-children">
-                <a href="#">Parcels</a>
+                <router-link to="#">Parcels</router-link>
                 <ul class="cd-secondary-dropdown is-hidden">
                   <li class="has-children">
                     <ul class="is-hidden">
                       <li>
-                        <a href="/add_parcel">Add Parcel</a>
+                        <router-link to="/add_parcel">Add Parcel</router-link>
                       </li>
                       <li>
-                        <a href="/incoming_parcels">Incoming Parcels</a>
+                        <router-link to="/incoming_parcels">Incoming Parcels</router-link>
                       </li>
                       <li>
-                        <a href="/outgoing_parcels">Outgoing Parcels</a>
+                        <router-link to="/outgoing_parcels">Outgoing Parcels</router-link>
                       </li>
                     </ul>
                   </li>
                  
                 </ul>
               </li>
-              <li class="has-children">
-                <a href="#">Reports</a>
+              <li v-if="this.user.role == 2" class="has-children">
+                <router-link to="#">Reports</router-link>
                 <ul class="cd-secondary-dropdown is-hidden">
                   <li class="has-children">
                     <ul class="is-hidden">
                      
                       <li>
-                        <a href="/revenue-report">Revenue Reports</a>
+                        <router-link to="/revenue-report">Revenue Reports</router-link>
                       </li>
                       <li>
-                        <a href="/transit-report">Transit Parcels</a>
+                        <router-link to="/transit-report">Transit Parcels</router-link>
                       </li>
                       <li>
-                        <a href="/received-report">Received Parcels</a>
+                        <router-link to="/received-report">Received Parcels</router-link>
                       </li>
                       <li>
-                        <a href="/removed-report">Removed Parcels</a>
+                        <router-link to="/removed-report">Removed Parcels</router-link>
                       </li>
                     </ul>
                   </li>
@@ -123,16 +164,16 @@
                 </ul>
               </li>
               <li>
-                <a class="" href="/destination">Destination Branches</a>
+                <router-link v-if="this.user.role == 2" class="" to="/destination">Destination Branches</router-link>
               </li>
               <li>
-                <a class="" href="/staffs">Staff Members</a>
+                <router-link v-if="this.user.role == 2" class="" to="/staffs">Staff Members</router-link>
               </li>
               <li>
-                <a class="" href="/customers">Customers</a>
+                <router-link v-if="this.user.role == 2" class="" to="/customers">Customers</router-link>
               </li>
               <li>
-                <a class="" href="/profile">Profile</a>
+                <router-link class="" to="/profile">Profile</router-link>
               </li>
             </ul>
 
@@ -148,7 +189,7 @@
 
         <!-- Account settings starts -->
         <div class="dropdown ms-4">
-          <a id="userSettings" class="dropdown-toggle user-settings" href="#!" role="button"
+          <router-link id="userSettings" class="dropdown-toggle user-settings" to="#!" role="button"
             data-bs-toggle="dropdown" aria-expanded="false">
             <div class="me-2 text-truncate d-lg-block d-none">
               <span class="d-flex opacity-50 small">{{ this.user.role_name }}</span>
@@ -158,10 +199,10 @@
               <img :src="this.$store.state.img_url+this.user.avator"  class="rounded-5 img-3x" alt="Kagopoint" />
               <span class="user-status busy"></span>
             </div>
-          </a>
+          </router-link>
           <div class="dropdown-menu dropdown-menu-end">
             <div class="mx-3 my-2 d-grid">
-              <a href="login.html" class="btn btn-primary">Profile</a>
+              <router-link to="login.html" class="btn btn-primary">Profile</router-link>
               <p></p>
               <button @click="logout" class="btn btn-danger">Logout</button>
             </div>
@@ -215,7 +256,7 @@
     <div class="app-footer text-center text-primary">
       <hr/>
       <p>© Kagopoint 2024</p>
-      <p><a href="http://www.akilikubwadigital.com" target="_blank" rel="noopener noreferrer">www.akilikubwadigital.com</a></p>
+      <p><router-link to="http://www.akilikubwadigital.com" target="_blank" rel="noopener noreferrer">www.akilikubwadigital.com</router-link></p>
     </div>
     <!-- App footer ends -->
 
@@ -229,7 +270,7 @@
 <!-- Page wrapper ends -->
 
   <div v-if="!loged">
-      <Authentication />
+      <authentication />
   </div>
 
 

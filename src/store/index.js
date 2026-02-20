@@ -5,11 +5,11 @@ import * as CryptoJS from 'crypto-js';
 export default createStore({
   state: {
     //back end local url 192.168.0.2
-    api_url: "http://192.168.0.2:2025/api",
-    img_url: "http://192.168.0.2:2025/images/",
+    //api_url: "http://192.168.0.2:2025/api",
+    //img_url: "http://192.168.0.2:2025/images/",
 
-    //api_url: "https://kago.akilikubwadigital.com/api",
-    //img_url: "https://kago.akilikubwadigital.com/images/",
+    api_url: "https://kagopoint.com/api",
+    img_url: "https://kagopoint.com/images/",
 
     page_name:"Dashbord",
     user: {},
@@ -63,10 +63,11 @@ export default createStore({
       if (response.data.success) {
 
         commit('setUser', response.data.user)
+
+        //console.log(response.data.user)
         
         localStorage.setItem('user', CryptoJS.AES.encrypt(JSON.stringify(response.data.user), 'user').toString())
         localStorage.setItem('user_token', CryptoJS.AES.encrypt(response.data.token.accessToken, 'user_token').toString())
-
 
         window.location.replace('/');
 
@@ -107,7 +108,7 @@ export default createStore({
       }
 
     },*/
-    logOut({ state, commit }) {
+    logOut({ state, commit }, user) {
 
       /*localStorage.removeItem("user_token")
       localStorage.removeItem("user")
@@ -115,7 +116,7 @@ export default createStore({
       commit('setUser',{})
       window.location.replace('/');*/
       axios
-        .post(state.api_url + '/auth/logout')
+        .post(state.api_url + '/auth/logout',user)
         .then(response => {
 
           if (response.data.success) {

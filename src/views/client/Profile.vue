@@ -10,15 +10,15 @@
 <template>
   <div>
     <div class="p-2">
-      <div v-if="this.branches_fetch" class="">
+      <div v-if="this.bundle_fetch" class="">
         <div class="text-center">
           <div class="spinner-grow text-success" role="status"></div>
           <div class="spinner-grow text-danger" role="status"></div>
           <div class="spinner-grow text-warning" role="status"></div>
         </div>
       </div>
-      <div v-if="!this.branches_fetch">
-        <div v-if="this.branches" class="mt-3">
+      <div v-if="!this.bundle_fetch">
+        <div class="mt-3">
           <div class="mx-n4 p-4 bg-primary mb-4">
             <div class="d-flex align-items-center flex-row flex-wrap">
               <img
@@ -74,13 +74,13 @@
             </div>
           </div>
           <!--bando info-->
-          <div class="mx-n4 p-4 bg-danger mb-4">
+          <div v-if="this.user.role == 2" class="mx-n4 p-4 bg-danger mb-4">
             <div class="d-flex align-items-center flex-row flex-wrap">
               
               <div class="ms-3 text-white">
                 <h5 class="mb-1">Package/ Bundle</h5>
-                <h6 class="m-0 fw-light">Type : Palapala</h6>
-                <h6 class="m-0 fw-light">Period : Year</h6>
+                <h6 class="m-0 fw-light">Current Package :</h6>
+                <h6 class="m-0 fw-bold">{{ this.dataz.current_package }}</h6>
               </div>
 
               <div
@@ -89,9 +89,9 @@
                 <i class="ri-phone-line fs-2 lh-1 me-2"></i>
                 <div>
                   <h6 class="mb-1">Subscription</h6>
-                  <p class="m-0 fw-light small">Start : 12-05-2025</p>
-                  <p class="m-0 fw-light small">Update : 12-05-2025</p>
-                  <p class="m-0 fw-light small">Expire : 12-06-2026</p>
+                  <p class="m-0 fw-light small">Start : {{ this.dataz.start_sub }}</p>
+                  <p class="m-0 fw-light small">Update : {{ this.dataz.start_date }}</p>
+                  <p class="m-0 fw-light small">Expire : {{ this.dataz.expire_date }}</p>
                 </div>
               </div>
 
@@ -101,8 +101,8 @@
                 <i class="ri-phone-line fs-2 lh-1 me-2"></i>
                 <div>
                   <h6 class="mb-1">Branches</h6>
-                  <p class="m-0 fw-light small">Current : 5</p>
-                  <p class="m-0 fw-light small">Balance : 15</p>
+                  <p class="m-0 fw-light small">Currently : {{ this.priceFormat(dataz.branches) }}</p>
+                  <p class="m-0 fw-light small">Limits : <b>Not</b></p>
                 </div>
               </div>
 
@@ -112,8 +112,8 @@
                 <i class="ri-map-pin-line fs-2 lh-1 me-2"></i>
                 <div>
                   <h6 class="mb-1">Staff accounts</h6>
-                  <p class="m-0 fw-light small">Current : 13</p>
-                  <p class="m-0 fw-light small">Balance : 8</p>
+                  <p class="m-0 fw-light small">Currently : {{ this.priceFormat(dataz.staffs) }}</p>
+                  <p class="m-0 fw-light small">Limits : <b>Not</b></p>
                 </div>
               </div>
 
@@ -124,9 +124,10 @@
                 <div>
                   <h6 class="mb-1">Parcels</h6>
                   <p class="m-0 fw-light small">
-                    Life time : 4100
+                    Life time : {{ this.priceFormat(dataz.parcels) }}
                   </p>
-                  <p class="m-0 fw-light small">Balance : 380</p>
+                  <p v-if="this.dataz.bundle_id == 2" class="m-0 fw-light small">Limit : <b>Not</b></p>
+                  <p v-if="this.dataz.bundle_id != 2" class="m-0 fw-light small">Balance : {{ this.priceFormat(dataz.company_info.parcels) }}</p>
                 </div>
               </div>
 
@@ -137,9 +138,9 @@
                 <div>
                   <h6 class="mb-1">Text SMS</h6>
                   <p class="m-0 fw-light small">
-                    Life time : 2100
+                    Life time : {{ this.priceFormat(dataz.sms_lifetime) }}
                   </p>
-                  <p class="m-0 fw-light small">Balance : 780</p>
+                  <p class="m-0 fw-light small">Balance : {{ this.priceFormat(dataz.sms_balance) }}</p>
                 </div>
               </div>
             </div>
@@ -148,79 +149,75 @@
           <div>
             <div class="row gx-3 justify-content-between">
 
-                <div class="col-md-3 col-sm-6 col-12">
-                <div class="card mb-3">
-                  <div class="card-header">
-                    <h5 class="card-title">Profile Picture</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="d-flex justify-content-center">
-                      <img
-                        :src="this.$store.state.img_url + this.user.avator"
-                        class="img-5x rounded-circle"
-                        alt="Admin Dashboard"
-                      />
+              <div class="col-sm-4 col-md-6 col-12">
+                 <div v-if="this.bundle_fetch" class="mt-5">
+      <div class="text-center">
+        <div class="spinner-grow text-success" role="status"></div>
+        <div class="spinner-grow text-danger" role="status"></div>
+        <div class="spinner-grow text-warning" role="status"></div>
+      </div>
+    </div>
+    <div v-if="!this.bundle_fetch">
+      
+      <div v-if="this.user.role == 2" class="card mb-3">
+     
+        <div class="card-body">
+          <!-- Table start -->
+          <div class="table-responsive">
+            <div
+              id="basicExample2_wrapper"
+              class="dataTables_wrapper dt-bootstrap5 no-footer"
+            >
+              <div class="row"></div>
+              <div class="row">
+                <div class="col-sm-12">
+                  <table
+                    id="basicExample2"
+                    class="table table-striped table-responsive align-middle dataTable no-footer"
+                    aria-describedby="basicExample2_info"
+                  >
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>Bundle Name</th>
+                        <th>Start Date</th>
+                        <th>Expire Date</th>
+                       
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        class=""
+                        v-for="(parcel, index) in bundles"
+                        :key="parcel.id"
+                      >
+                        <td class="sorting_1">{{ index + 1 }}</td>
+                        <td>{{ parcel.bundle_name }}</td>
+                        
+                        <td>
+                          <span
+                            class="badge border border-success text-success"
+                            >{{ parcel.sub_at_date }}</span
+                          >
+                        </td>
+                        <td>
+                          <span
+                            class="badge border border-danger text-danger"
+                            >{{ parcel.sub_end_date }}</span>
+                          </td>
                       
-                    </div>
-                    <div class="d-flex justify-content-center mt-2">
-                        <button class="btn btn-success align-center">Upload picture</button>
-                    </div>
-                   
-                  </div>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-
-              <div class="col-sm-6 col-md-5 col-12">
-                <div class="card mb-3">
-                  <div class="card-header">
-                    <h5 class="card-title">Personal Details</h5>
-                  </div>
-                  <div class="card-body">
-                    <!-- Row start -->
-                    <div class="row gx-3">
-                      <div class="col-sm col-12">
-                        <!-- Form Field Start -->
-                        <div class="mb-3">
-                          <label for="fullName" class="form-label"
-                            >Full Name</label
-                          >
-                          <input
-                            type="text"
-                            class="form-control"
-                            id="fullName"
-                            placeholder="Full Name"
-                          />
-                        </div>
-
-                        <!-- Form Field Start -->
-                        <div class="mb-3">
-                          <label for="contactNumber" class="form-label"
-                            >Contact</label
-                          >
-                          <input
-                            type="text"
-                            class="form-control"
-                            id="contactNumber"
-                            placeholder="Contact"
-                          />
-                        </div>
-                      </div>
-
-                      <div class="col-12">
-                        <!-- Form Field Start -->
-                        <div class="mb-3">
-                          <label class="form-label">About</label>
-                          <textarea class="form-control" rows="3"></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button class="btn btn-success align-center">Update</button>
-                    <!-- Row end -->
-                  </div>
-                </div>
-              </div>
+            </div>
+          </div>
+          <!-- Table end -->
+        </div>
+      </div>
+    </div>
+               </div>
 
               <div class="col-md-4 col-sm-6 col-12">
                 <div class="card mb-3">
@@ -238,6 +235,7 @@
                           <input
                             type="text"
                             class="form-control"
+                             v-model="this.form.current_password"
                             id="currentPassword"
                             placeholder="Enter Current Password"
                           />
@@ -250,6 +248,7 @@
                           <input
                             type="text"
                             class="form-control"
+                            v-model="this.form.new_password"
                             id="newPassword"
                             placeholder="Enter New Password"
                           />
@@ -262,12 +261,27 @@
                           <input
                             type="text"
                             class="form-control"
+                            v-model="this.form.confirm_password"
                             id="confirmNewPassword"
                             placeholder="Confirm New Password"
                           />
                         </div>
+<div>
+  <p class="text-danger">{{ this.errors }}</p>
+</div>
+                        
+                        <button v-if="this.change_pass_btn" @click="changePassword" type="button" class="btn align-center btn-success">
+                          Change password
+            </button>
 
-                        <button class="btn btn-success align-center">Change password</button>
+            <button v-if="!this.change_pass_btn" class="btn btn-success" type="button">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Please Wait...
+            </button>
                       </div>
                     </div>
                   </div>
@@ -279,36 +293,6 @@
       </div>
     </div>
 
-    <div
-      class="modal fade"
-      id="exampleModalToggle"
-      aria-hidden="true"
-      aria-labelledby="exampleModalToggleLabel"
-      tabindex="-1"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-body text-center">
-            <h1 class="display-4">
-              <i class="ri-delete-bin-line text-danger"></i>
-            </h1>
-            <h4 class="fw-bold">Confirm Delete</h4>
-            <p>Are you sure, what to delete Branch.</p>
-            <div class="d-flex justify-content-center">
-              <button
-                type="button"
-                class="btn btn-danger"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <span class="m-2"></span>
-              <button class="btn btn-success">Delete</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -321,15 +305,16 @@ export default {
   data() {
     return {
       filter_btn: true,
-      branches_fetch: true,
-      branch: {},
-      staff: [],
-      statistics: {},
+      change_pass_btn: true,
+      branches_fetch:false,
+      bundle_fetch: true,
+      bundles: [],
+      dataz:{},
       errors: "",
-      tags: [],
-      branches: [],
       form: {
-        name: "",
+        current_password: "",
+        new_password:"",
+        confirm_password:""
       },
       user: this.$attrs.user,
     };
@@ -338,26 +323,57 @@ export default {
     dataFormat(date) {
       return moment(date).format("DD - MM - YYYY");
     },
-    async allBranches() {
-      var response = await axios.get(
-        this.$store.state.api_url + "/branch/all-branches"
-      );
+     priceFormat(price) {
+      return price.toLocaleString()
+    },
+    async changePassword() {
+      this.errors = "";
+      this.change_pass_btn = false;
+
+      var response = await axios
+        .post(this.$store.state.api_url + "/change-password", this.form)
+        .catch((errors) => {
+          this.change_pass_btn = true;
+          var message = "Network or Server Errors";
+          this.$toast.error(message, { duration: 7000, dismissible: true });
+        });
+
       if (response.data.success) {
-        this.branches = response.data.branches;
-        this.branches_fetch = false;
-      } else {
+        this.change_pass_btn = true;
         var message = response.data.message;
-        this.$toast.danger(message, { duration: 5000, dismissible: true });
+        this.$toast.success(message, { duration: 7000, dismissible: true });
+        //window.location.reload();
+      } else {
+        if(response.data.code == 444){
+            localStorage.removeItem("user_token")
+            localStorage.removeItem("user")
+            window.location.reload(); 
+        }
+        this.errors = response.data.message;
+        this.$toast.error(response.data.message, { duration: 7000, dismissible: true });
+        this.change_pass_btn = true;
       }
     },
-    branchInfo(branch) {
-      this.branch_info = true;
-      this.branch = branch;
+       async companyProfile() {
+      var response = await axios.get(
+        this.$store.state.api_url + "/profile/company-profile"
+      );
+      if (response.data.success) {
+        this.dataz = response.data.dataz;
+        this.bundles = response.data.bundles;
+        this.bundle_fetch = false;
+        
+      } else {
+        var message = response.data.message;
+        this.$toast.error(message, { duration: 5000, dismissible: true });
+      }
     },
+
+    
   },
   created() {
     this.$store.state.page_name = "Profile";
-    this.allBranches();
+    this.companyProfile()
   },
 };
 </script>

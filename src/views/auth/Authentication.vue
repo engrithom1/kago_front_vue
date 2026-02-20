@@ -10,7 +10,7 @@
   <div class="auth-box">
 
     <!-- Logo starts -->
-    <a href="index.html" class="auth-logo mb-4">
+    <a href="https://kagopoint.com/" class="auth-logo mb-4">
       <img src="assets/images/Kagopoint.png" alt="Bootstrap Gallery" />
     </a>
     <!-- Logo ends -->
@@ -28,7 +28,7 @@
     </div>
 
     <div class="d-flex justify-content-end mb-4">
-      <a href="/forget password" class="text-decoration-underline">Forgot password?</a>
+      <a href="/forget_password" class="text-decoration-underline">Forgot password?</a>
     </div>
 
     <p class="text-danger">
@@ -38,6 +38,10 @@
     <div class="mb-3 d-grid gap-2">
       <button type="submit" class="btn btn-dark">Login</button>
       <!--a href="signup.html" class="btn btn-outline-dark">Not registered? SignUp</a-->
+    </div>
+
+     <div class="d-flex justify-content-center mb-4">
+      Don't have Account? <a href="https://kagopoint.com/create-account" class="text-decoration-underline"> Register</a>
     </div>
 
   </div>
@@ -61,6 +65,7 @@ export default {
       alert_danger:false,
       alert_success:false,
       alert_load:false,
+      change_pass_btn: true,
       message:"",
       username:"",
       auth:true,
